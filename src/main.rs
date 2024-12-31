@@ -11,6 +11,7 @@ use axum::{
     routing::get,
     Extension, Router,
 };
+use config::SERVER_ADDR;
 use job_manager::JobManager;
 use mpd::Mpd;
 use tower_http::timeout::TimeoutLayer;
@@ -61,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
         // Add a timeout so requests don't hang forever.
         .layer(TimeoutLayer::new(Duration::from_secs(10)));
 
-    let addr = "0.0.0.0:3000";
+    let addr = SERVER_ADDR;
     let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("Serving on {addr}");
     axum::serve(listener, app)

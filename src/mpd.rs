@@ -7,7 +7,7 @@ use mpd_client::{
 };
 use tokio::{net::TcpStream, time::sleep};
 
-use crate::{config::{DOWNLOADS_PLAYLIST_NAME, MUSIC_DIRECTORY}, yt_dlp};
+use crate::{config::{DOWNLOADS_PLAYLIST_NAME, MPD_SERVER_ADDR, MUSIC_DIRECTORY}, yt_dlp};
 
 
 
@@ -18,7 +18,7 @@ pub(super) struct Mpd {
 
 impl Mpd {
     pub(super) async fn new() -> anyhow::Result<Self> {
-        let stream: TcpStream = TcpStream::connect("localhost:6600").await?;
+        let stream: TcpStream = TcpStream::connect(MPD_SERVER_ADDR).await?;
         let (client, _) = Client::connect(stream).await?;
         anyhow::Result::Ok(Self { client })
     }
