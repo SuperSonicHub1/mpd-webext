@@ -9,7 +9,6 @@ use tokio::{fs::create_dir_all, process::Command};
 use crate::{config::DOWNLOADS_DIR_NAME, mpd::Mpd};
 
 
-/// TODO: Make configurable
 pub(super) fn download_dir_name() -> String {
     DOWNLOADS_DIR_NAME.into()
 }

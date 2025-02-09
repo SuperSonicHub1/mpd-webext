@@ -53,7 +53,6 @@ impl Mpd {
         Ok(songs)
     }
 
-    /// TODO: Make configurable
     pub(super) fn library_directory(&self) -> &str {
         MUSIC_DIRECTORY
     }
