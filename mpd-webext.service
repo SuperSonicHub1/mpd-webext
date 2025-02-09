@@ -4,8 +4,9 @@ After=mpd.service
 
 [Service]
 Environment=RUST_BACKTRACE=1
+StandardError=journal+console
 Restart=on-failure
-ExecStart=/usr/local/bin/mpd-webext     
+ExecStart=/usr/local/bin/mpd-webext
 
 [Install]
 WantedBy=default.target
