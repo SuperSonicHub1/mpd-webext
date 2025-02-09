@@ -1,0 +1,10 @@
+[Unit]
+Description=mpd-webext
+After=mpd.service
+
+[Service]
+Restart=on-failure
+ExecStart=/usr/local/bin/mpd-webext     
+
+[Install]
+WantedBy=default.target
