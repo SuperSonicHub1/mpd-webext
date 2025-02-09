@@ -3,6 +3,7 @@ Description=mpd-webext
 After=mpd.service
 
 [Service]
+Environment=RUST_BACKTRACE=1
 Restart=on-failure
 ExecStart=/usr/local/bin/mpd-webext     
 
