@@ -7,7 +7,7 @@ use mpd_client::{
 };
 use tokio::{net::TcpStream, time::sleep};
 
-use crate::{config::{DOWNLOADS_PLAYLIST_NAME, MPD_SERVER_ADDR, MUSIC_DIRECTORY}, yt_dlp};
+use crate::{config::{DOWNLOADS_PLAYLIST_NAME, MPD_SERVER_ADDR, MUSIC_DIRECTORY, RESCAN_TIME}, yt_dlp};
 
 
 
@@ -58,18 +58,16 @@ impl Mpd {
     }
 
     pub(super) async fn download_link(&self, url: &str) -> anyhow::Result<()> {
-        let previous_playlist = self.get_downloads_playlist().await?;
-        let already_in_playlist = |uri: &str| {
-            previous_playlist.iter().any(|song| song.url.contains(uri))
-        };
+        let previous_playlist = self.get_downloads_playlist().await.ok();
 
         // Download song
         let files = yt_dlp::download_link(&self, url).await?;
 
         // Update downloads folder
-        self.client.command(Rescan::new()).await?;
+        self.client.command(Rescan::new().uri(yt_dlp::download_dir_name().as_str())).await?;
         // It seems that the rescan happens asynchronously; a bother.
-        sleep(Duration::from_secs(2)).await;
+        // `idle update` didn't work...
+        sleep(Duration::from_secs(RESCAN_TIME)).await;
 
         // Add files to queue and playlist
         for file in files {
@@ -78,7 +76,10 @@ impl Mpd {
             self.client.command(Add::uri(uri.as_str())).await?;
 
             // Don't add song to playlist if already there
-            if !already_in_playlist(uri.as_str()) {
+            // TODO: Very ugly (and kinda unperformant) Rust
+            if !previous_playlist.clone()
+                .unwrap_or(vec![]).iter()
+                .any(|song| song.url.contains(&uri)) {
                 self.client
                     .command(AddToPlaylist::new(DOWNLOADS_PLAYLIST_NAME, uri.as_str()))
                     .await?;
