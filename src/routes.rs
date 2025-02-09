@@ -21,7 +21,7 @@ use axum_messages::Messages;
 
 pub(crate) async fn index(messages: Messages, manager: Extension<Arc<JobManager>>, mpd: Extension<Arc<Mpd>>) -> AppResult<impl IntoResponse> {
     let playing = mpd.currently_playing().await?;
-    let catalog = mpd.get_downloads_playlist().await?;
+    let maybe_catalog = mpd.get_downloads_playlist().await.ok();
     let jobs = manager.jobs();
     Ok(html! {
         (DOCTYPE)
@@ -76,31 +76,37 @@ pub(crate) async fn index(messages: Messages, manager: Extension<Arc<JobManager>
             summary { 
                 h2 { "Catalog" }
             }
-            table {
-                thead {
-                    th scope="col" { "Title" }
-                    th scope="col" { "Artists" }
-                    th scope="col" { "Queue" }
-                }
-                tbody {
-                    @for song in catalog {
-                        @let title = song
-                            .title()
-                            .or(song.file_path().to_str())
-                            .unwrap_or("[no name]");
-                        tr {
-                            th scope="row" { (title) }
-                            td { (song.artists().join("& ")) }
-                            td { 
-                                form action="/queue" method="get" {
-                                    input type="hidden" name="uri" value=(song.url);
-                                    input type="submit" value="Queue";
+            @match maybe_catalog {
+                Some(catalog) => {
+                    table {
+                        thead {
+                            th scope="col" { "Title" }
+                            th scope="col" { "Artists" }
+                            th scope="col" { "Queue" }
+                        }
+                        tbody {
+                            @for song in catalog {
+                                @let title = song
+                                    .title()
+                                    .or(song.file_path().to_str())
+                                    .unwrap_or("[no name]");
+                                tr {
+                                    th scope="row" { (title) }
+                                    td { (song.artists().join("& ")) }
+                                    td { 
+                                        form action="/queue" method="get" {
+                                            input type="hidden" name="uri" value=(song.url);
+                                            input type="submit" value="Queue";
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                },
+                None => p { "No songs; add one!" }
             }
+            
         }
     })
 }
