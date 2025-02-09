@@ -565,6 +565,7 @@ dependencies = [
  "deadqueue",
  "maud",
  "mpd_client",
+ "mpd_protocol",
  "serde",
  "tokio",
  "tokio-util",
